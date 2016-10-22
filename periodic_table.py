@@ -1,4 +1,4 @@
-import requests, time, openpyxl
+import sys, requests, time, openpyxl
 from bs4 import BeautifulSoup
 
 def ScrapeTableOfElements():
@@ -16,6 +16,7 @@ def ScrapeTableOfElements():
             if ' ' not in td.text and len(td.text) <= 12 and len(td.text) >= 1 and ',' not in td.text and '-' not in td.text:
                 element.append(td.text)
         if len(element) == 3:
+            element[0] = int(element[0])
             elements.append(element)
             print(element)
     print()
@@ -36,6 +37,9 @@ def GetElementDataFromWikipedia(element):
                 element_data.append([ths[0].text, tds[0].text])
         except:
             pass
+    for detail in element_data:
+        if detail[0] == 'Atomic number (Z)':
+            detail[1] = int(detail[1])
     return element_data
 
 def ScrapeAllElementsData():
@@ -43,6 +47,7 @@ def ScrapeAllElementsData():
     details = []
     elements_data = []
     for element in elements:
+        print('Scraping ' + element[1] + '...')
         try:
             element_data = GetElementDataFromWikipedia(element[1])
             for detail in element_data:
