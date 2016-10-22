@@ -1,6 +1,8 @@
 import sys, requests, time, openpyxl
 from bs4 import BeautifulSoup
 
+start_time = time.time()
+
 def ScrapeTableOfElements():
     url = 'http://www.lenntech.com/periodic-chart-elements/atomic-number.htm'
     r = requests.get(url)
@@ -67,13 +69,16 @@ def ScrapeAllElementsData():
         for row in elements_data[-1]:
             print(row)
         print()
-        print(str(len(details)), 'unique details', '|', str(round( 100*( int(element[0]) / 118 ), 3) ) + '% done')
+        done_percentage = round(100*( int(element[0])/118 ), 1)
+        time_elapsed = round(time.time() - start_time, 1)
+        estimated_total_time = round((time_elapsed*100)/done_percentage, 1)
+        seconds_done_str = str(time_elapsed) + ' / ~' + str(estimated_total_time) + ' secs elapsed'
+        print(str(len(details)), 'unique details', '|', str(done_percentage) + '% done | ' + seconds_done_str)
         print()
         #time.sleep(1)
     return [elements, details, elements_data]
 
-if __name__ == '__main__':
-    elements, details, elements_data = ScrapeAllElementsData()
+def WriteElementsDataToExcelWorkbook(elements, details, elements_data):
     wb = openpyxl.Workbook()
     ws = wb.worksheets[0]
     for d in range(len(details)):
@@ -89,3 +94,13 @@ if __name__ == '__main__':
         ws.cell(row=1, column=1+c).value = ['Number', 'Name', 'Symbol'][c]
     ws.freeze_panes = ws['D2']
     wb.save('periodic_table.xlsx')
+
+if __name__ == '__main__':
+    start_time = time.time()
+    elements, details, elements_data = ScrapeAllElementsData()
+    time_elapsed = round(time.time() - start_time, 1)
+    if len(elements) == len(elements_data):# and len(elements) == 117:
+        WriteElementsDataToExcelWorkbook(elements, details, elements_data)
+        print('Wrote data to periodic_table.xlsx. ' + str(time_elapsed) + ' secs elapsed')
+    else:
+        print('Incorrect data retrieved. No output file written. ' + str(time_elapsed) + ' secs elapsed')
