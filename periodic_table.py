@@ -73,7 +73,7 @@ def ScrapeAllElementsData():
         time_elapsed = round(time.time() - start_time, 1)
         estimated_total_time = round((time_elapsed*100)/done_percentage, 1)
         seconds_done_str = str(time_elapsed) + ' / ~' + str(estimated_total_time) + ' secs elapsed'
-        print(str(len(details)), 'unique details', '|', str(done_percentage) + '% done | ' + seconds_done_str)
+        print(str(len(details)), 'unique details', '|', str(done_percentage) + '% done |', seconds_done_str)
         print()
         #time.sleep(1)
     return [elements, details, elements_data]
@@ -101,6 +101,6 @@ if __name__ == '__main__':
     time_elapsed = round(time.time() - start_time, 1)
     if len(elements) == len(elements_data):# and len(elements) == 117:
         WriteElementsDataToExcelWorkbook(elements, details, elements_data)
-        print('Wrote data to periodic_table.xlsx. ' + str(time_elapsed) + ' secs elapsed')
+        print('Wrote data to periodic_table.xlsx.', str(time_elapsed), 'secs elapsed')
     else:
-        print('Incorrect data retrieved. No output file written. ' + str(time_elapsed) + ' secs elapsed')
+        print('Incorrect data retrieved. No output file written.', str(time_elapsed), 'secs elapsed')
