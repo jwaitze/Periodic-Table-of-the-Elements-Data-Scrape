@@ -80,4 +80,7 @@ if __name__ == '__main__':
         for d in range(len(elements_data[e])):
             i = details.index(elements_data[e][d][0])
             ws.cell(row=1+1+e, column=1+3+i).value = elements_data[e][d][1]
+    for c in range(3):
+        ws.cell(row=1, column=1+c).value = ['Number', 'Name', 'Symbol'][c]
+    ws.freeze_panes = ws['D2']
     wb.save('periodic_table.xlsx')
