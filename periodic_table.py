@@ -3,14 +3,13 @@ from bs4 import BeautifulSoup
 
 start_time = time.time()
 
-def is_wanted_lenntech_table_data(data):
-    if ' ' in data or ',' in data or '-' in data:
-        return False
-    if len(data) <= 12 and len(data) >= 1:
-        return True
-    return False
-
 def scrape_table_of_elements():
+    def is_wanted_lenntech_table_data(data):
+        if ' ' in data or ',' in data or '-' in data:
+            return False
+        if len(data) <= 12 and len(data) >= 1:
+            return True
+        return False
     url = 'http://www.lenntech.com/periodic-chart-elements/atomic-number.htm'
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
@@ -65,8 +64,7 @@ def scrape_all_elements_data():
                 details.append(detail[0])
         elements_data.append(element_data)
         print(element[0], element[1], element[2], '|', str(len(elements_data[-1])), 'details')
-        for row in elements_data[-1]:
-            print(row)
+        [print(row) for row in elements_data[-1]]
         print()
         done_percentage = round(100*( int(element[0])/118 ), 1)
         time_elapsed = round(time.time() - start_time, 1)
