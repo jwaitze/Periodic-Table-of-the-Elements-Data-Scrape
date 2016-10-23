@@ -3,7 +3,14 @@ from bs4 import BeautifulSoup
 
 start_time = time.time()
 
-def ScrapeTableOfElements():
+def is_wanted_lenntech_table_data(data):
+    if ' ' in data or ',' in data or '-' in data:
+        return False
+    if len(data) <= 12 and len(data) >= 1:
+        return True
+    return False
+
+def scrape_table_of_elements():
     url = 'http://www.lenntech.com/periodic-chart-elements/atomic-number.htm'
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
@@ -13,10 +20,7 @@ def ScrapeTableOfElements():
     elements = []
     for tr in trs:
         tds = tr.find_all('td')
-        element = []
-        for td in tds:
-            if ' ' not in td.text and len(td.text) <= 12 and len(td.text) >= 1 and ',' not in td.text and '-' not in td.text:
-                element.append(td.text)
+        element = [td.text for td in tds if is_wanted_lenntech_table_data(td.text)]
         if len(element) == 3:
             element[0] = int(element[0])
             elements.append(element)
@@ -24,9 +28,9 @@ def ScrapeTableOfElements():
     print()
     return elements
 
-def GetElementDataFromWikipedia(element):
+def get_element_data_from_wikipedia(element):
     element_data = []
-    url = 'https://en.wikipedia.org/wiki/' + element
+    url = 'https://en.wikipedia.org/wiki/%s' % element
     r = requests.get(url)
     soup = BeautifulSoup(r.content, 'html.parser')
     infoboxes = soup.find_all('table', 'infobox')
@@ -44,27 +48,22 @@ def GetElementDataFromWikipedia(element):
             detail[1] = int(detail[1])
     return element_data
 
-def ScrapeAllElementsData():
-    elements = ScrapeTableOfElements()
-    details = []
-    elements_data = []
+def scrape_all_elements_data():
+    elements = scrape_table_of_elements()
+    details, elements_data, element_data = [], [], []
     for element in elements:
         print('Scraping ' + element[1] + '...')
         try:
-            element_data = GetElementDataFromWikipedia(element[1])
-            for detail in element_data:
-                if detail[0] not in details:
-                    details.append(detail[0])
-            elements_data.append(element_data)
+            element_data = get_element_data_from_wikipedia(element[1])
         except:
             try:
-                element_data = GetElementDataFromWikipedia(element[1] + '_(element)')
-                for detail in element_data:
-                    if detail[0] not in details:
-                        details.append(detail[0])
-                elements_data.append(element_data)
+                element_data = get_element_data_from_wikipedia(element[1] + '_(element)')
             except:
                 continue
+        for detail in element_data:
+            if detail[0] not in details:
+                details.append(detail[0])
+        elements_data.append(element_data)
         print(element[0], element[1], element[2], '|', str(len(elements_data[-1])), 'details')
         for row in elements_data[-1]:
             print(row)
@@ -78,7 +77,7 @@ def ScrapeAllElementsData():
         #time.sleep(1)
     return [elements, details, elements_data]
 
-def WriteElementsDataToExcelWorkbook(elements, details, elements_data):
+def write_elements_data_to_excel_workbook(elements, details, elements_data):
     wb = openpyxl.Workbook()
     ws = wb.worksheets[0]
     for d in range(len(details)):
@@ -97,10 +96,10 @@ def WriteElementsDataToExcelWorkbook(elements, details, elements_data):
 
 if __name__ == '__main__':
     start_time = time.time()
-    elements, details, elements_data = ScrapeAllElementsData()
+    elements, details, elements_data = scrape_all_elements_data()
     time_elapsed = round(time.time() - start_time, 1)
     if len(elements) == len(elements_data):# and len(elements) == 117:
-        WriteElementsDataToExcelWorkbook(elements, details, elements_data)
+        write_elements_data_to_excel_workbook(elements, details, elements_data)
         print('Wrote data to periodic_table.xlsx.', str(time_elapsed), 'secs elapsed')
     else:
         print('Incorrect data retrieved. No output file written.', str(time_elapsed), 'secs elapsed')
