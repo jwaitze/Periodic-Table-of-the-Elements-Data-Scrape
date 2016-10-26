@@ -8,4 +8,6 @@ The application in this repository downloads the full Periodic Table of the Elem
 
 Feel free to use it however you like, though Wikipedia may not appreciate this program being run several times in a row with short delay!
 
-Please report any apparent issues or need for update to Jake@Waitze.net
+- Contact: Jake@Waitze.net
+
+- Don't hesitate to contact me and let me know if something is not working. (or submit an issue or pull request)
