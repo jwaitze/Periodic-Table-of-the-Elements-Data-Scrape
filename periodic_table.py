@@ -1,3 +1,7 @@
+# Periodic Table of the Elements Scrape
+# Written by Jake Waitze
+# Contact: Jake@Waitze.net
+
 import sys, requests, time, openpyxl
 from bs4 import BeautifulSoup
 
