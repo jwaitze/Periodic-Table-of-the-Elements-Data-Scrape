@@ -97,11 +97,14 @@ def write_elements_data_to_excel_workbook(elements, details, elements_data):
     wb.save('periodic_table.xlsx')
 
 if __name__ == '__main__':
-    start_time = time.time()
-    elements, details, elements_data = scrape_all_elements_data()
-    time_elapsed = round(time.time() - start_time, 1)
-    if len(elements) == len(elements_data):# and len(elements) == 117:
-        write_elements_data_to_excel_workbook(elements, details, elements_data)
-        print('Wrote data to periodic_table.xlsx.', str(time_elapsed), 'secs elapsed')
-    else:
-        print('Incorrect data retrieved. No output file written.', str(time_elapsed), 'secs elapsed')
+    try:
+        start_time = time.time()
+        elements, details, elements_data = scrape_all_elements_data()
+        time_elapsed = round(time.time() - start_time, 1)
+        if len(elements) == len(elements_data):# and len(elements) == 117:
+            write_elements_data_to_excel_workbook(elements, details, elements_data)
+            print('Wrote data to periodic_table.xlsx.', str(time_elapsed), 'secs elapsed')
+        else:
+            print('Incorrect data retrieved. No output file written.', str(time_elapsed), 'secs elapsed')
+    except:
+        print('Error: Exception occured') # remove blanket exception for development/debugging
