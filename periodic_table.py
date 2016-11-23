@@ -2,7 +2,7 @@
 # Written by Jake Waitze
 # Contact: Jake@Waitze.net
 
-import sys, requests, time, openpyxl
+import sys, requests, time, openpyxl, json
 from bs4 import BeautifulSoup
 
 start_time = time.time()
@@ -47,8 +47,24 @@ def get_element_data_from_wikipedia(element):
         except:
             pass
     for detail in element_data:
-        if detail[0] == 'Atomic number (Z)':
-            detail[1] = int(detail[1])
+        detail[1] = detail[1].replace('\xa0', ' ').replace('\u200b', '').strip()
+        detail[0] = detail[0].lower().replace(', ', '_').replace('\xa0', ' ')
+        detail[0] = detail[0].replace(' ', '_').replace('.', '').strip()
+        detail[0] = detail[0].replace('\'', '').replace('\n', '')
+        for i in range(1, 25):
+            detail[0].replace('[' + str(i) + ']', '')
+            detail[1].replace('[' + str(i) + ']', '')
+        if detail[1].replace('-', '').replace('.', '').isdigit() and '-' not in detail[1][1:]:
+            if '.' in detail[1]:
+                detail[1] = float(detail[1])
+            else:
+                detail[1] = int(detail[1])
+        if 'atomic_number' in detail[0]:
+            detail[0] = 'atomic_number'
+        elif 'standard_atomic_weight' in detail[0]:
+            detail[0] = 'atomic_weight'
+        elif 'density_at_stp' in detail[0]:
+            detail[0] = 'density_at_stp'
     return element_data
 
 def scrape_all_elements_data():
@@ -79,7 +95,7 @@ def scrape_all_elements_data():
         #time.sleep(1)
     return [elements, details, elements_data]
 
-def write_elements_data_to_excel_workbook(elements, details, elements_data):
+def write_elements_data_to_excel_workbook(filepath, elements, details, elements_data):
     wb = openpyxl.Workbook()
     ws = wb.worksheets[0]
     for d in range(len(details)):
@@ -92,18 +108,51 @@ def write_elements_data_to_excel_workbook(elements, details, elements_data):
             i = details.index(elements_data[e][d][0])
             ws.cell(row=1+1+e, column=1+3+i).value = elements_data[e][d][1]
     for c in range(3):
-        ws.cell(row=1, column=1+c).value = ['Number', 'Name', 'Symbol'][c]
+        ws.cell(row=1, column=1+c).value = ['number', 'name', 'symbol'][c]
     ws.freeze_panes = ws['D2']
-    wb.save('periodic_table.xlsx')
+    wb.save(filepath)
+
+def excel_workbook_to_list(filepath):
+    if '.xlsx' not in filepath:
+        return []
+    retval = []
+    wb = openpyxl.load_workbook(filepath)
+    ws = wb.worksheets[0]
+    for row in ws.iter_rows():
+        retval.append([cell.value for cell in row])
+    return retval
+
+def get_json_from_excel_workbook(filepath):
+    excel_data = excel_workbook_to_list(filepath)
+    keys, j = excel_data[0], []
+    for row in range(len(excel_data[1:])):
+        j.append({})
+        for k in range(len(keys)):
+            if type(excel_data[row][k]) is str and len(excel_data[row][k]) < 1:
+                excel_data[row][k] = 'n/a'
+            j[-1].update( { keys[k] : excel_data[row][k] } )
+    return j
+
+def write_json_list_to_file(filepath, j):
+    with open(filepath, 'w', encoding='utf-8') as outfile:
+        for row in j:
+            outfile.write(str(row) + '\n')
+
+def write_elements_to_json_file(excel_filepath, json_filepath):
+    j = get_json_from_excel_workbook(excel_filepath)
+    write_json_list_to_file(json_filepath, j)
 
 if __name__ == '__main__':
+    filename_prefix = 'periodic_table'
     try:
         start_time = time.time()
         elements, details, elements_data = scrape_all_elements_data()
         time_elapsed = round(time.time() - start_time, 1)
         if len(elements) == len(elements_data):# and len(elements) == 117:
-            write_elements_data_to_excel_workbook(elements, details, elements_data)
-            print('Wrote data to periodic_table.xlsx.', str(time_elapsed), 'secs elapsed')
+            write_elements_data_to_excel_workbook(filename_prefix + '.xlsx', elements, details, elements_data)
+            write_elements_to_json_file(filename_prefix + '.xlsx', filename_prefix + '.json')
+            print('Wrote data to ' + filename_prefix + ' file.', str(time_elapsed), 'secs elapsed')
+            
         else:
             print('Incorrect data retrieved. No output file written.', str(time_elapsed), 'secs elapsed')
     except:

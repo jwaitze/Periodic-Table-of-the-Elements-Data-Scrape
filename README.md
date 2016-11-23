@@ -6,6 +6,8 @@ The application in this repository downloads the full Periodic Table of the Elem
 
 2) Then, the data for each element taken from there will be pulled from Wikipedia and formatted into an Excel document which is the output.
 
+3) Another output is generated in the form of a JSON database file
+
 Feel free to use it however you like, though Wikipedia may not appreciate this program being run several times in a row with short delay!
 
 - Contact: Jake@Waitze.net
