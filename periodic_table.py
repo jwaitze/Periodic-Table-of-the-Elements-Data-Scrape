@@ -1,8 +1,13 @@
 # Periodic Table of the Elements Scrape
+# Excel Workbook & JSON Database output
+# Utilizes lenntech.com and wikipedia.org for data
+
 # Written by Jake Waitze
 # Contact: Jake@Waitze.net
 
-import sys, requests, time, openpyxl, json
+filename_prefix = 'periodic_table'
+
+import sys, requests, time, openpyxl
 from bs4 import BeautifulSoup
 
 start_time = time.time()
@@ -52,8 +57,8 @@ def get_element_data_from_wikipedia(element):
         detail[0] = detail[0].replace(' ', '_').replace('.', '').strip()
         detail[0] = detail[0].replace('\'', '').replace('\n', '')
         for i in range(1, 25):
-            detail[0].replace('[' + str(i) + ']', '')
-            detail[1].replace('[' + str(i) + ']', '')
+            detail[0] = detail[0].replace('[' + str(i) + ']', '')
+            detail[1] = detail[1].replace('[' + str(i) + ']', '')
         if detail[1].replace('-', '').replace('.', '').isdigit() and '-' not in detail[1][1:]:
             if '.' in detail[1]:
                 detail[1] = float(detail[1])
@@ -143,7 +148,6 @@ def write_elements_to_json_file(excel_filepath, json_filepath):
     write_json_list_to_file(json_filepath, j)
 
 if __name__ == '__main__':
-    filename_prefix = 'periodic_table'
     try:
         start_time = time.time()
         elements, details, elements_data = scrape_all_elements_data()
