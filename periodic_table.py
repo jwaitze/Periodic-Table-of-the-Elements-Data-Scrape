@@ -133,7 +133,7 @@ def get_json_from_excel_workbook(filepath):
     for row in range(len(excel_data[1:])):
         j.append({})
         for k in range(len(keys)):
-            if type(excel_data[row][k]) is str and len(excel_data[row][k]) < 1:
+            if excel_data[row][k] == None:
                 excel_data[row][k] = 'n/a'
             j[-1].update( { keys[k] : excel_data[row][k] } )
     return j
