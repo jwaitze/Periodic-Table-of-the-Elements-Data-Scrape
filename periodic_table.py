@@ -6,6 +6,7 @@
 # Contact: Jake@Waitze.net
 
 filename_prefix = 'periodic_table'
+strip_extraneous_characters = True
 
 import sys, requests, time, openpyxl
 from bs4 import BeautifulSoup
@@ -59,11 +60,22 @@ def get_element_data_from_wikipedia(element):
         for i in range(1, 25):
             detail[0] = detail[0].replace('[' + str(i) + ']', '')
             detail[1] = detail[1].replace('[' + str(i) + ']', '')
-        if detail[1].replace('-', '').replace('.', '').isdigit() and '-' not in detail[1][1:]:
+        if detail[1].replace('-', '').replace('.', '').isdigit() and '-' not in detail[1][1:] and detail[1].count('.') < 2:
             if '.' in detail[1]:
                 detail[1] = float(detail[1])
             else:
                 detail[1] = int(detail[1])
+        extraneous_delimeters = ['(', ' ']
+        if strip_extraneous_characters and type(detail[1]) is str and sum([1 for e in extraneous_delimeters if e in detail[1]]) != 0:
+            stripped = detail[1].replace(',', '')
+            for e in extraneous_delimeters:
+                if e in stripped:
+                    stripped = stripped[:stripped.index(e)]
+            if stripped.replace('.', '').replace('-', '').isdigit() and '-' not in stripped[1:] and stripped.count('.') < 2:
+                if '.' in stripped:
+                    detail[1] = float(stripped)
+                else:
+                    detail[1] = int(stripped)
         if 'atomic_number' in detail[0]:
             detail[0] = 'atomic_number'
         elif 'standard_atomic_weight' in detail[0]:
@@ -130,7 +142,7 @@ def excel_workbook_to_list(filepath):
 def get_json_from_excel_workbook(filepath):
     excel_data = excel_workbook_to_list(filepath)
     keys, j = excel_data[0], []
-    for row in range(len(excel_data[1:])):
+    for row in range(1, len(excel_data)):
         j.append({})
         for k in range(len(keys)):
             if excel_data[row][k] == None:
