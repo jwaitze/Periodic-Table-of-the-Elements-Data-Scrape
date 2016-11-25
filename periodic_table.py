@@ -37,6 +37,51 @@ def scrape_table_of_elements():
     print()
     return elements
 
+def process_raw_wikipedia_table(detail):
+    body = detail[1].replace('\xa0', ' ').replace('\u200b', '').strip()
+    title = detail[0].lower().replace(', ', '_').replace('\xa0', ' ')
+    title = title.replace(' ', '_').replace('.', '').strip()
+    title = title.replace('\'', '').replace('\n', '')
+    for i in range(1, 25):
+        title = title.replace('[' + str(i) + ']', '')
+        body = body.replace('[' + str(i) + ']', '')
+    if body.replace('-', '').replace('.', '').isdigit() and '-' not in body[1:] and body.count('.') < 2:
+        if '.' in body:
+            body = float(body)
+        else:
+            body = int(body)
+    extraneous_delimeters = ']) '
+    if strip_extraneous_characters and type(body) is str and sum([1 for e in extraneous_delimeters if e in body]) != 0:
+        stripped = body
+        for e in extraneous_delimeters:
+            if e in stripped:
+                stripped = stripped[:stripped.index(e)]
+        strip_chars = '[(,' + extraneous_delimeters
+        for c in strip_chars:
+            stripped = stripped.replace(c, '')
+        if stripped.replace('.', '').replace('-', '').isdigit() and '-' not in stripped[1:] and stripped.count('.') < 2:
+            if '.' in stripped:
+                body = float(stripped)
+            else:
+                body = int(stripped)
+    if type(body) is str:
+        split_delimeters = [', ', '\n']
+        for s in split_delimeters:
+            if s in body:
+                body = body.split(s)
+                body = [d for d in body if len(d) != 0 and d != ' ']
+    if 'atomic_number' in title:
+        title = 'atomic_number'
+    elif 'standard_atomic_weight' in title:
+        title = 'atomic_weight'
+    elif 'density_at_stp' in title:
+        title = 'density_at_stp'
+    elif 'period' == title:
+        body = int(body[body.index(' ')+1:])
+    if type(body) is list:
+        body = ', '.join(body)
+    return title, body
+
 def get_element_data_from_wikipedia(element):
     element_data = []
     url = 'https://en.wikipedia.org/wiki/%s' % element
@@ -53,35 +98,7 @@ def get_element_data_from_wikipedia(element):
         except:
             pass
     for detail in element_data:
-        detail[1] = detail[1].replace('\xa0', ' ').replace('\u200b', '').strip()
-        detail[0] = detail[0].lower().replace(', ', '_').replace('\xa0', ' ')
-        detail[0] = detail[0].replace(' ', '_').replace('.', '').strip()
-        detail[0] = detail[0].replace('\'', '').replace('\n', '')
-        for i in range(1, 25):
-            detail[0] = detail[0].replace('[' + str(i) + ']', '')
-            detail[1] = detail[1].replace('[' + str(i) + ']', '')
-        if detail[1].replace('-', '').replace('.', '').isdigit() and '-' not in detail[1][1:] and detail[1].count('.') < 2:
-            if '.' in detail[1]:
-                detail[1] = float(detail[1])
-            else:
-                detail[1] = int(detail[1])
-        extraneous_delimeters = ['(', ' ']
-        if strip_extraneous_characters and type(detail[1]) is str and sum([1 for e in extraneous_delimeters if e in detail[1]]) != 0:
-            stripped = detail[1].replace(',', '')
-            for e in extraneous_delimeters:
-                if e in stripped:
-                    stripped = stripped[:stripped.index(e)]
-            if stripped.replace('.', '').replace('-', '').isdigit() and '-' not in stripped[1:] and stripped.count('.') < 2:
-                if '.' in stripped:
-                    detail[1] = float(stripped)
-                else:
-                    detail[1] = int(stripped)
-        if 'atomic_number' in detail[0]:
-            detail[0] = 'atomic_number'
-        elif 'standard_atomic_weight' in detail[0]:
-            detail[0] = 'atomic_weight'
-        elif 'density_at_stp' in detail[0]:
-            detail[0] = 'density_at_stp'
+        detail[0], detail[1] = process_raw_wikipedia_table(detail)
     return element_data
 
 def scrape_all_elements_data():
@@ -168,7 +185,6 @@ if __name__ == '__main__':
             write_elements_data_to_excel_workbook(filename_prefix + '.xlsx', elements, details, elements_data)
             write_elements_to_json_file(filename_prefix + '.xlsx', filename_prefix + '.json')
             print('Wrote data to ' + filename_prefix + ' file.', str(time_elapsed), 'secs elapsed')
-            
         else:
             print('Incorrect data retrieved. No output file written.', str(time_elapsed), 'secs elapsed')
     except:
