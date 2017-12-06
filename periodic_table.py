@@ -17,7 +17,7 @@ def scrape_table_of_elements():
     def is_wanted_lenntech_table_data(data):
         if ' ' in data or ',' in data or '-' in data:
             return False
-        if len(data) <= 12 and len(data) >= 1:
+        if len(data) <= 13 and len(data) >= 1:
             return True
         return False
     url = 'http://www.lenntech.com/periodic-chart-elements/atomic-number.htm'
@@ -187,5 +187,5 @@ if __name__ == '__main__':
             print('Wrote data to ' + filename_prefix + ' file.', str(time_elapsed), 'secs elapsed')
         else:
             print('Incorrect data retrieved. No output file written.', str(time_elapsed), 'secs elapsed')
-    except:
-        print('Error: Exception occured') # remove blanket exception for development/debugging
+    except Exception as e:
+        print('Exception occured: %s' % e) # remove blanket exception for development/debugging
